@@ -65,6 +65,18 @@ class EvaluatorTests(unittest.TestCase):
         self.assertAlmostEqual(float(resultados[2]), 5.14)
         self.assertAlmostEqual(float(resultados[3]), 51.4)
 
+    def test_varias_variaveis(self) -> None:
+        linhas = [
+            ["(", "42", "VAR", ")", "(", "VAR", "1", "+", ")"],
+            ["(", "100", "ABC", ")", "(", "ABC", "2", "/", ")"],
+        ]
+        self.eval.processarLinhas(linhas)
+        resultados = self.eval.get_resultados()
+        
+        # O evaluador retorna o último valor extraído ou processado se houver múltiplos parênteses
+        self.assertAlmostEqual(float(resultados[1]), 43.0)
+        self.assertAlmostEqual(float(resultados[2]), 50.0)
+
 
 if __name__ == "__main__":
     unittest.main()
