@@ -9,7 +9,7 @@ class MemoryAccessError(AttributeError):
 
 class Evaluator:
     def __init__(self):
-        self.memoria: float | None = None
+        self.memoria: dict[str, str] = {}
         self.resultados: dict[int, str | None] = {}
 
     def _applyBinaryOp(self, op_func, op_symbol: str, pilha: deque) -> float:
@@ -54,16 +54,6 @@ class Evaluator:
                 case "^":
                     result = self._applyBinaryOp(operator.pow, "^", pilha)
 
-                case "MEM":
-                    if len(pilha) == 0:
-                        if self.memoria is not None:
-                            result = str(self.memoria)
-                        else:
-                            raise MemoryAccessError  # TODO this might be better handled by syntax analyzer but dont know
-                    else:
-                        value = pilha.pop()
-                        self.memoria = value
-
                 case "RES":
                     val = pilha.pop()
                     # Handle both integer strings "2" and float strings "2.0"
@@ -73,6 +63,16 @@ class Evaluator:
                         linha_alvo = int(float(val))
 
                     result = self.resultados.get(linha_alvo)
+
+                case token if token.isalpha() and token.isupper():
+                    if len(pilha) == 0:
+                        if token in self.memoria:
+                            result = str(self.memoria[token])
+                        else:
+                            raise MemoryAccessError  # TODO this might be better handled by syntax analyzer but dont know
+                    else:
+                        value = pilha.pop()
+                        self.memoria[token] = value
 
                 case "(":
                     result = self.executarExpressao(
@@ -98,22 +98,3 @@ class Evaluator:
     def get_resultados(self):
         return self.resultados
 
-
-if __name__ == "__main__":
-    eval = Evaluator()
-
-    script_lines = [
-        ["(", "3.14", "2.0", "+", ")"],
-        ["(", "(", "1.5", "2.0", "*", ")", "(", "3.0", "4.0", "*", ")", "/", ")"],
-        ["(", "5.0", "MEM", ")", "(", "MEM", ")"],
-        ["(", "2", "RES", ")"],
-    ]
-
-    print("--- Processing Script ---")
-    eval.processarLinhas(script_lines)
-
-    print("\n--- Results ---")
-    for line_num, res in eval.resultados.items():
-        print(f"Line {line_num}: {res}")
-
-    print(f"\nFinal Memory State: {eval.memoria}")
